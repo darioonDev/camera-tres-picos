@@ -9,12 +9,24 @@ const app = express();
 const dev = process.argv.includes('--dev');
 const stationId = process.env.WU_STATION_ID || 'INOVAF30';
 const videoId = /^[A-Za-z0-9_-]{11}$/.test(process.env.YOUTUBE_VIDEO_ID || '') ? process.env.YOUTUBE_VIDEO_ID : null;
-const streamUrl = (() => {
+// Base URL of the RTSP→HLS gateway (VPS). Served to the browser through the
+// same-origin /live proxy below, so the camera works on HTTPS without
+// mixed-content. Overridable via HLS_UPSTREAM; defaults to the project gateway.
+const hlsUpstream = (() => {
+  const value = (process.env.HLS_UPSTREAM || 'http://177.7.39.222:8888').trim();
   try {
-    const value = process.env.CAMERA_STREAM_URL || '';
     const url = new URL(value);
-    return ['http:', 'https:'].includes(url.protocol) ? url.toString() : null;
+    return ['http:', 'https:'].includes(url.protocol) ? url.toString().replace(/\/$/, '') : null;
   } catch { return null; }
+})();
+const streamUrl = (() => {
+  // An explicit absolute CAMERA_STREAM_URL wins (e.g. a public HTTPS manifest);
+  // otherwise serve the gateway via the same-origin /live proxy.
+  try {
+    const url = new URL(process.env.CAMERA_STREAM_URL || '');
+    if (['http:', 'https:'].includes(url.protocol)) return url.toString();
+  } catch { /* not an absolute URL — fall through */ }
+  return hlsUpstream ? '/live/stream.m3u8' : null;
 })();
 const weather = createWeatherService({
   apiKey: process.env.WU_API_KEY,
@@ -43,6 +55,26 @@ app.get('/api/history/monthly', async (req, res) => {
   }
 });
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
+// Same-origin HLS proxy: the browser fetches /live/* from this origin (HTTPS);
+// the server fetches from the plain-HTTP gateway (no mixed-content). Mirrors the
+// Sentinela site's /live route.
+app.get('/live/{*path}', async (req, res) => {
+  if (!hlsUpstream) return res.status(503).end('HLS gateway not configured.');
+  const raw = req.params.path;
+  const parts = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  const safe = parts.filter(p => p !== '..' && p !== '.').join('/');
+  try {
+    const upstream = await fetch(`${hlsUpstream}/${safe}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+    if (!upstream.ok || !upstream.body) return res.status(upstream.status === 404 ? 404 : 502).end();
+    const isManifest = safe.endsWith('.m3u8');
+    res.set('Content-Type', isManifest ? 'application/vnd.apple.mpegurl' : (upstream.headers.get('content-type') || 'video/mp2t'));
+    res.set('Cache-Control', isManifest ? 'no-cache, no-store, must-revalidate' : 'public, max-age=60');
+    const { Readable } = await import('node:stream');
+    Readable.fromWeb(upstream.body).pipe(res);
+  } catch {
+    res.status(502).end();
+  }
+});
 if (dev) {
   const { createServer } = await import('vite');
   const vite = await createServer({ server: { middlewareMode: true }, appType: 'spa' });
