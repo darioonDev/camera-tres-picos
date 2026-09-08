@@ -12,6 +12,8 @@
 .timelapse-stage .timelapse-landscape{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 46%;filter:brightness(.72) saturate(.76)}
 .timelapse-stage .timelapse-landscape.landscape-fallback{filter:none!important}
 .camera-stream{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#0d1914;z-index:2}
+/* Overlay meteorológico acima do vídeo (mesmo nível do stream, mas depois no DOM); controles (z-index:3, botão do olho) seguem por cima. */
+.weather-overlay{z-index:2}
 .camera-view:has(.camera-stream) .camera-controls{bottom:0;top:auto;right:0;left:0;width:auto;background:linear-gradient(transparent,#0d1b17b3);border-radius:0}
 .camera-view:has(.camera-stream) .camera-controls>span{display:flex}
 .admin-field-wide{grid-column:1 / -1}
