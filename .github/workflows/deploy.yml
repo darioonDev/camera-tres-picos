@@ -1,0 +1,45 @@
+name: Deploy to Hostinger
+
+# Auto-deploy NovaEstacao (Olhar Três Picos) to camera.dariodonascimento.com.br
+# on every push to main. Also runnable manually from the Actions tab.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+      - ".github/**"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Create source archive
+        # Source only (tracked files) — no node_modules/dist/.env. Hostinger
+        # installs and builds (npm install + npm run build) and runs npm start.
+        run: git archive --format=zip -o "$GITHUB_WORKSPACE/deploy-archive.zip" HEAD
+
+      - name: Install deploy tooling
+        working-directory: .github/deploy
+        run: npm install --no-audit --no-fund
+
+      - name: Deploy via Hostinger MCP
+        working-directory: .github/deploy
+        env:
+          HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+          DEPLOY_DOMAIN: camera.dariodonascimento.com.br
+          ARCHIVE_PATH: ${{ github.workspace }}/deploy-archive.zip
+        run: node deploy.mjs

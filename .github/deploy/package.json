@@ -1,0 +1,10 @@
+{
+  "name": "novaestacao-deploy",
+  "private": true,
+  "type": "module",
+  "description": "CI-only tooling: drives Hostinger's MCP to deploy the app. Not part of the site build.",
+  "dependencies": {
+    "@hostinger/mcp": "^1.55.1",
+    "@modelcontextprotocol/sdk": "^1.19.1"
+  }
+}
