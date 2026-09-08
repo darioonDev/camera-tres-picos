@@ -1,0 +1,23 @@
+# MediaMTX 1.21.0. Private Docker network only.
+logLevel: warn
+rtsp: true
+rtspTransports: [tcp]
+rtmp: false
+hls: true
+hlsAddress: :8888
+hlsAllowOrigins: ['*']
+webrtc: false
+srt: false
+api: false
+authInternalUsers:
+  - user: any
+    permissions:
+      - action: publish
+        path: camera
+      - action: read
+        path: camera
+paths:
+  camera:
+    source: publisher
+    alwaysAvailable: true
+    alwaysAvailableFile: /data/offline.mp4

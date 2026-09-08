@@ -1,0 +1,11 @@
+{$DOMAIN} {
+  encode zstd gzip
+  @camera path /camera/*
+  handle @camera {
+    reverse_proxy media:8888
+  }
+  handle {
+    reverse_proxy web:3000
+  }
+  header Strict-Transport-Security "max-age=31536000"
+}

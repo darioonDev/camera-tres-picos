@@ -1,0 +1,110 @@
+/* The entire card activates the icon; values and labels remain still. */
+.weather-card .metric-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 10px;
+  transition: background-color 220ms ease, box-shadow 220ms ease;
+}
+
+.weather-symbol { overflow: visible; }
+.thermometer-mercury { transform-origin: 12px 19px; transform: scaleY(.65); }
+.pressure-needle { transform-origin: 12px 15px; }
+.sun-rays, .sun-core { transform-origin: 12px 12px; }
+.humidity-drop-main { transform-origin: 14.5px 19px; }
+.humidity-drop-small { transform-origin: 5.5px 19px; }
+.gust-windsock { transform-origin: 5px 8px; }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .weather-card:hover .metric-icon { box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 6%, transparent); }
+
+  .weather-card:hover .thermometer-mercury { animation: mercury-rise 1.8s ease-in-out infinite; }
+  .weather-card:hover .thermometer-bulb { animation: bulb-warmth 1.8s ease-in-out infinite; }
+
+  .weather-card:hover .humidity-drop { animation: droplet-swell 2s ease-in-out infinite; }
+  .weather-card:hover .humidity-drop-small { animation-delay: -1s; }
+  .weather-card:hover .humidity-glint { animation: water-shimmer 2s ease-in-out infinite; }
+
+  .weather-card:hover .wind-stream {
+    stroke-dasharray: 24 8;
+    animation: wind-flow 1.25s linear infinite;
+  }
+  .weather-card:hover .wind-stream-middle { animation-delay: -.4s; animation-duration: 1s; }
+  .weather-card:hover .wind-stream-bottom { animation-delay: -.7s; animation-duration: 1.45s; }
+
+  .weather-card:hover .rain-cloud { animation: cloud-drift 2.4s ease-in-out infinite; }
+  .weather-card:hover .rain-drop { animation: rainfall 1s linear infinite; }
+  .weather-card:hover .rain-drop-two { animation-delay: -.35s; }
+  .weather-card:hover .rain-drop-three { animation-delay: -.7s; }
+
+  .weather-card:hover .pressure-needle { animation: pressure-sweep 2.2s ease-in-out infinite; }
+  .weather-card:hover .sun-rays { animation: sunshine-turn 8s linear infinite; }
+  .weather-card:hover .sun-core { animation: sunshine-glow 2s ease-in-out infinite; }
+  .weather-card:hover .thermal-wave { animation: thermal-rise 1.6s ease-in-out infinite; }
+  .weather-card:hover .thermal-wave-two { animation-delay: -.8s; }
+  .weather-card:hover .gust-windsock { animation: gust-flutter 900ms ease-in-out infinite; }
+  .weather-card:hover .gust-trail { animation: gust-travel 1.2s ease-out infinite; }
+}
+
+@keyframes thermal-rise {
+  0% { transform: translateY(1.5px); opacity: .2; }
+  40% { opacity: 1; }
+  100% { transform: translateY(-2px); opacity: .2; }
+}
+@keyframes gust-flutter {
+  0%, 100% { transform: skewY(-5deg) scaleX(.96); }
+  35% { transform: skewY(4deg) scaleX(1.04); }
+  70% { transform: skewY(-2deg) scaleX(1); }
+}
+@keyframes gust-travel {
+  0% { transform: translateX(-1px); opacity: 0; }
+  30% { opacity: .7; }
+  100% { transform: translateX(2px); opacity: 0; }
+}
+
+@keyframes mercury-rise {
+  0%, 100% { transform: scaleY(.65); }
+  50% { transform: scaleY(1); }
+}
+@keyframes bulb-warmth {
+  0%, 100% { opacity: .7; }
+  50% { opacity: 1; }
+}
+@keyframes droplet-swell {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1px) scale(.95, 1.05); }
+}
+@keyframes water-shimmer {
+  0%, 100% { opacity: .35; }
+  50% { opacity: .95; }
+}
+@keyframes wind-flow {
+  from { stroke-dashoffset: 32; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes cloud-drift {
+  0%, 100% { transform: translateX(-.6px); }
+  50% { transform: translateX(.6px); }
+}
+@keyframes rainfall {
+  0% { transform: translate(.5px, -1.5px); opacity: 0; }
+  20% { opacity: 1; }
+  75% { opacity: .9; }
+  100% { transform: translate(-.5px, 3px); opacity: 0; }
+}
+@keyframes pressure-sweep {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-35deg); }
+  65% { transform: rotate(25deg); }
+  82% { transform: rotate(-7deg); }
+}
+@keyframes sunshine-turn { to { transform: rotate(360deg); } }
+@keyframes sunshine-glow {
+  0%, 100% { transform: scale(1); fill: transparent; }
+  50% { transform: scale(1.08); fill: #b1975518; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-card:hover { transform: none; }
+  .weather-symbol, .weather-symbol * { animation: none !important; }
+}

@@ -1,0 +1,95 @@
+name: olhar-tres-picos
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+services:
+  web:
+    build: ..
+    restart: unless-stopped
+    environment:
+      WU_API_KEY: ${WU_API_KEY:-}
+      WU_STATION_ID: ${WU_STATION_ID:-INOVAF30}
+      WU_PUBLIC_FALLBACK: ${WU_PUBLIC_FALLBACK:-true}
+      WU_PAGE_URL: ${WU_PAGE_URL:-https://www.wunderground.com/dashboard/pws/INOVAF30}
+      YOUTUBE_VIDEO_ID: ${YOUTUBE_VIDEO_ID:-}
+      CAMERA_STREAM_URL: ${CAMERA_STREAM_URL:-}
+      ALLOW_DEMO: "false"
+    logging: *logging
+  caddy:
+    profiles: [standalone]
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in infra/.env}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [web]
+    logging: *logging
+  prepare:
+    profiles: [stream]
+    build:
+      context: ..
+      dockerfile: infra/worker.Dockerfile
+    command: ["node", "infra/stream-worker.mjs", "prepare"]
+    volumes: ["broadcast-data:/data"]
+    logging: *logging
+  media:
+    profiles: [stream]
+    image: bluenviron/mediamtx:1.21.0
+    restart: unless-stopped
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+      - broadcast-data:/data:ro
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+    logging: *logging
+    # RTSP is internal to Docker. Do not publish 8554 to the Internet.
+  ingest:
+    profiles: [stream]
+    build:
+      context: ..
+      dockerfile: infra/worker.Dockerfile
+    command: ["node", "infra/stream-worker.mjs", "ingest"]
+    restart: unless-stopped
+    environment:
+      CAMERA_RTSP_URL: ${CAMERA_RTSP_URL:-}
+    depends_on: [media]
+    logging: *logging
+  overlay:
+    profiles: [stream]
+    build:
+      context: ..
+      dockerfile: infra/worker.Dockerfile
+    command: ["node", "infra/stream-worker.mjs", "overlay"]
+    restart: unless-stopped
+    environment:
+      WEATHER_URL: http://web:3000/api/weather
+    volumes: ["broadcast-data:/data"]
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+      web:
+        condition: service_healthy
+    logging: *logging
+  broadcast:
+    profiles: [stream]
+    build:
+      context: ..
+      dockerfile: infra/worker.Dockerfile
+    command: ["node", "infra/stream-worker.mjs", "broadcast"]
+    restart: unless-stopped
+    environment:
+      YOUTUBE_RTMPS_URL: ${YOUTUBE_RTMPS_URL:-}
+    volumes: ["broadcast-data:/data:ro"]
+    depends_on: [media, overlay]
+    logging: *logging
+volumes:
+  broadcast-data:
+  caddy-data:
+  caddy-config:
