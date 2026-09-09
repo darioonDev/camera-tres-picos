@@ -1,0 +1,19 @@
+name: Deploy to Coolify
+
+# Auto-deploy on every push to main: triggers the Coolify deploy API for the
+# camera.dariodonascimento.com.br app. Also runnable manually from Actions.
+# Requires the repo secret COOLIFY_TOKEN (a Coolify API token with deploy scope).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify deploy
+        run: |
+          curl --fail-with-body -sS \
+            "http://177.7.39.222:8000/api/v1/deploy?uuid=beb1jq2f14lwxmr9j0ug6omm&force=false" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
