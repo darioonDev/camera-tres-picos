@@ -1,5 +1,5 @@
 export function demoData(now = Date.now()) {
-  const observation = { stationId: 'INOVAF30', observedAt: new Date(now).toISOString(), temperature: 18.6, feelsLike: 18.6, humidity: 82, windSpeed: 6.4, windGust: 12.2, windDirection: 135, pressure: 1016.8, rain: 0.4, rainRate: 0, dewPoint: 15.5, uv: 2, solarRadiation: 184 };
+  const observation = { stationId: 'INOVAF30', observedAt: new Date(now).toISOString(), temperature: 18.6, feelsLike: 18.6, temperatureHigh: 20.5, temperatureLow: 13.9, humidity: 82, windSpeed: 6.4, windGust: 12.2, windDirection: 135, pressure: 1016.8, rain: 0.4, rainRate: 0, dewPoint: 15.5, uv: 2, solarRadiation: 184 };
   const history = Array.from({ length: 49 }, (_, index) => ({ ...observation, observedAt: new Date(now - (48 - index) * 1800_000).toISOString(), temperature: +(16.4 + Math.sin(index / 7 - 2) * 3.7 + Math.cos(index * 1.7) * .22).toFixed(1), humidity: +(80 - Math.sin(index / 7 - 2) * 11).toFixed(0), windSpeed: +(5 + Math.sin(index / 4) * 3).toFixed(1) }));
   const monthlyHistory = Array.from({ length: 30 }, (_, index) => ({ ...observation,
     observedAt: new Date(now - (29 - index) * 86400_000).toISOString(),

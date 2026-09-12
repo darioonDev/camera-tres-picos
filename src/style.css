@@ -297,3 +297,14 @@
   .admin-actions { justify-content: stretch; }
   .admin-actions button { flex: 1; justify-content: center; }
 }
+
+.overlay-sub { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ffffff29; font-size: 10px; flex-wrap: wrap; }
+.overlay-sub-item { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.overlay-sub-item strong { font-weight: 600; }
+.overlay-sub-item.muted { color: #aec2b7; }
+.overlay-sub-item.max { color: #f0b429; }
+.overlay-sub-item.min { color: #6fd1f5; }
+.overlay-sub-divider { width: 1px; height: 10px; background: #ffffff2b; }
+@media (max-width: 650px) {
+  .overlay-sub { font-size: 8px; margin-top: 8px; padding-top: 8px; }
+}

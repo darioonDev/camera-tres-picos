@@ -115,6 +115,12 @@ function WeatherStrip({ observation: o, status, now }) {
   return <div className="weather-overlay">
     <div className="overlay-heading"><span className="overlay-place"><ThreePeaks size={18} /> TRÊS PICOS</span></div>
     <div className="overlay-readings"><div className="overlay-temperature"><CloudSun size={37} strokeWidth={1.3} /><span><HoverAnimatedValue value={o?.temperature} /> <small>°C</small></span></div><div><Wind size={19} /><strong><HoverAnimatedValue value={o?.windSpeed} /> <small>km/h</small></strong><span>Vento</span></div><div><Droplets size={19} /><strong><HoverAnimatedValue value={o?.humidity} digits={0} /><small>%</small></strong><span>Umidade</span></div><div><CloudRain size={19} /><strong><HoverAnimatedValue value={o?.rain} /> <small>mm</small></strong><span>Chuva hoje</span></div></div>
+    <div className="overlay-sub">
+      <span className="overlay-sub-item muted"><Thermometer size={13} /> sensação <strong>{fmt(o?.feelsLike, 0)}°</strong></span>
+      <span className="overlay-sub-divider" />
+      <span className="overlay-sub-item max"><ArrowUp size={12} /> máx {fmt(o?.temperatureHigh, 0)}°</span>
+      <span className="overlay-sub-item min"><ArrowDown size={12} /> mín {fmt(o?.temperatureLow, 0)}°</span>
+    </div>
     {status !== 'online' && <div className="overlay-warning">{statusText[status]}</div>}
   </div>;
 }

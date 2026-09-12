@@ -8,11 +8,23 @@ export function normalizeObservation(raw, stationId = 'INOVAF30', now = Date.now
   return {
     stationId, observedAt: new Date(time).toISOString(),
     temperature: number(m.temp), feelsLike: number(m.temp >= 27 ? m.heatIndex : m.temp <= 10 ? m.windChill : m.temp),
+    temperatureHigh: number(m.tempHigh), temperatureLow: number(m.tempLow),
     humidity: number(raw.humidity), windSpeed: number(m.windSpeed), windGust: number(m.windGust),
     windDirection: number(raw.winddir), pressure: number(m.pressure),
     rain: number(m.precipTotal), rainRate: number(m.precipRate), dewPoint: number(m.dewpt),
     uv: number(raw.uv), solarRadiation: number(raw.solarRadiation),
   };
+}
+/** Today's high/low across the day's observations (mirrors the WU "1day" tempHigh/tempLow per interval). */
+function dailyExtrema(history) {
+  let low = null, high = null;
+  for (const obs of history) {
+    const l = obs.temperatureLow ?? obs.temperature;
+    const h = obs.temperatureHigh ?? obs.temperature;
+    if (typeof l === 'number' && Number.isFinite(l)) low = low == null ? l : Math.min(low, l);
+    if (typeof h === 'number' && Number.isFinite(h)) high = high == null ? h : Math.max(high, h);
+  }
+  return { high, low };
 }
 export function normalizeDailySummary(raw, stationId = 'INOVAF30', now = Date.now()) {
   if (!raw || raw.stationID !== stationId) throw new Error('Invalid station');
@@ -176,5 +188,12 @@ export function createWeatherService({
     if (!validDate(startDate) || !validDate(endDate) || days < 1 || days > 31) throw new Error('Invalid history range');
     return request('historyRange', { startDate, endDate, days });
   }
-  return { current: () => request('current'), history: () => request('history'), history30: () => request('history30'), historyRange };
+  async function current() {
+    const result = await request('current');
+    if (!result.observation) return result;
+    const historyResult = await request('history');
+    const { high, low } = dailyExtrema(historyResult.history || []);
+    return { ...result, observation: { ...result.observation, temperatureHigh: high, temperatureLow: low } };
+  }
+  return { current, history: () => request('history'), history30: () => request('history30'), historyRange };
 }
